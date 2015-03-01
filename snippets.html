@@ -1,33 +1,33 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Snippets for bookmarklets</title>
 <link rel="stylesheet" href="http://yandex.st/highlightjs/7.2/styles/default.min.css">
 <script src="http://yandex.st/highlightjs/7.2/highlight.min.js"></script>
 </head>
 <body>
 <pre><code>
-// Получаем выделенный текст
+// РџРѕР»СѓС‡Р°РµРј РІС‹РґРµР»РµРЅРЅС‹Р№ С‚РµРєСЃС‚
 var getSel = function (w) {
     var s, d = w.document;
-	// ie-шная модель удобнее, но поддерживается только в нём и opera &lt; 10.5
+	// ie-С€РЅР°СЏ РјРѕРґРµР»СЊ СѓРґРѕР±РЅРµРµ, РЅРѕ РїРѕРґРґРµСЂР¶РёРІР°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ РІ РЅС‘Рј Рё opera &lt; 10.5
     if (d.selection) {
         var r = d.selection.createRange();
         s = r ? r.text : ''
     } else {
-		// window.getSelection() в опере багнута, теряя переносы строк, поэтому используем document.getSelection()
-		// явное приведение к строке необходимо, потому что в webkit document.getSelection() возвращает объект, такой же как и window.getSelection()
+		// window.getSelection() РІ РѕРїРµСЂРµ Р±Р°РіРЅСѓС‚Р°, С‚РµСЂСЏСЏ РїРµСЂРµРЅРѕСЃС‹ СЃС‚СЂРѕРє, РїРѕСЌС‚РѕРјСѓ РёСЃРїРѕР»СЊР·СѓРµРј document.getSelection()
+		// СЏРІРЅРѕРµ РїСЂРёРІРµРґРµРЅРёРµ Рє СЃС‚СЂРѕРєРµ РЅРµРѕР±С…РѕРґРёРјРѕ, РїРѕС‚РѕРјСѓ С‡С‚Рѕ РІ webkit document.getSelection() РІРѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЉРµРєС‚, С‚Р°РєРѕР№ Р¶Рµ РєР°Рє Рё window.getSelection()
 		s = d.getSelection().toString();
 		if (!s) {
-			// Ищем текст в инпутах и текстареах, отлавливая исключения при обращении к инпутам с недоступным selectionStart (ff и webkit).
+			// РС‰РµРј С‚РµРєСЃС‚ РІ РёРЅРїСѓС‚Р°С… Рё С‚РµРєСЃС‚Р°СЂРµР°С…, РѕС‚Р»Р°РІР»РёРІР°СЏ РёСЃРєР»СЋС‡РµРЅРёСЏ РїСЂРё РѕР±СЂР°С‰РµРЅРёРё Рє РёРЅРїСѓС‚Р°Рј СЃ РЅРµРґРѕСЃС‚СѓРїРЅС‹Рј selectionStart (ff Рё webkit).
 			var e, t = d.getElementsByTagName('textarea'), u = d.getElementsByTagName('input'), i = t.length;
 			while(e = (i &gt; 0) ? t[--i] : u[-i--])try{
 				if (e.offsetHeight &gt; 0 &amp;&amp; (s = e.value.substring(e.selectionStart, e.selectionEnd))) break
 			}catch(x){}
 		}
 	};
-	// рекурсивно вызываем себя во всех фреймах
+	// СЂРµРєСѓСЂСЃРёРІРЅРѕ РІС‹Р·С‹РІР°РµРј СЃРµР±СЏ РІРѕ РІСЃРµС… С„СЂРµР№РјР°С…
     if (!s) for (var j = 0, f; f = w.frames[j]; j++) {
         try {
             if (s = getSel(f)) break
@@ -38,11 +38,11 @@ var getSel = function (w) {
 // var txt = getSel(window);
 
 
-// Перевод с yandex translate
+// РџРµСЂРµРІРѕРґ СЃ yandex translate
 javascript:void(document.documentElement.appendChild(document.createElement('script')).src = 'http://translate.yandex.ru/tr.json/translate?srv=tr-text&amp;id=adb7aca1-0-0&amp;text='+document.getSelection()+'&amp;lang=en-ru&amp;callback=alert')
 
 
-// чистка вредных обработчиков
+// С‡РёСЃС‚РєР° РІСЂРµРґРЅС‹С… РѕР±СЂР°Р±РѕС‚С‡РёРєРѕРІ
 javascript:(function(w){
         var arr = ['contextmenu','copy','cut','paste','mousedown','mouseup','beforeunload','beforeprint'];
         for(var i = 0, x; x = arr[i]; i++){
@@ -93,7 +93,7 @@ function encodeBase64(str){
 };
 
 
-// Ссылки на видео
+// РЎСЃС‹Р»РєРё РЅР° РІРёРґРµРѕ
 var getVideo = function(flashvars, src){
 	var getLink = function(s){var a = s.match(/[^\s\x22=&amp;?]+\.[^\s\x22=&amp;?\/]*(flv|mp4)/i); return a ? a[0] : ''};
 	var getQuery = function(s, q){var a = s.match(new RegExp('(^|[&amp;?])'+q+'=([^&amp;]+)')); return a ? a[2] : ''};
@@ -114,7 +114,7 @@ var getVideo = function(flashvars, src){
 };
 
 
-// Панель для закачки
+// РџР°РЅРµР»СЊ РґР»СЏ Р·Р°РєР°С‡РєРё
 javascript:(function(){
 
 var c = 'ujs_max_upload', w = window, d = (w.document.body instanceof HTMLFrameSetElement ? w.frames[0] : w).document, e = d.getElementById(c);
@@ -177,7 +177,7 @@ b.onclick = function(){this.parentNode.del()};
 e.appendChild(b);
 
 e.add( {href:'http://www.imageshack.us', text:'Imageshack.us', action:'http://post.imageshack.us/', name:'fileupload'}, {MAX_FILE_SIZE:'1048576', key:'07AHPRSUb540e13d31461ec4d69d5fc122bd5ab7'} );
-e.add( {href:'http://www.radikal.cc', text:'Радикал-Фото', action:'http://www.radikal.cc/action.aspx', name:'F'}, {upload:'yes', VM:'180'} );
+e.add( {href:'http://www.radikal.cc', text:'Р Р°РґРёРєР°Р»-Р¤РѕС‚Рѕ', action:'http://www.radikal.cc/action.aspx', name:'F'}, {upload:'yes', VM:'180'} );
 e.add( {href:'http://fastpic.ru', text:'FastPic.ru', action:'http://fastpic.ru/uploadmulti', name:'file[]'}, {uploading:'1'} );
 e.add( {href:'http://multi-up.com', text:'Multi-up.com', action:'http://multi-up.com/up.php', name:'upload'} );
 e.add( {href:'http://zalil.ru', text:'Zalil.ru', action:'http://zalil.ru/upload/', name:'file'} );
@@ -187,7 +187,7 @@ e.vis(true);
 })();
 
 
-// Сохранение страницы в файл
+// РЎРѕС…СЂР°РЅРµРЅРёРµ СЃС‚СЂР°РЅРёС†С‹ РІ С„Р°Р№Р»
 javascript: (function () {
     var getSelWin = function (w) {
         if (w.getSelection().toString()) return w;
@@ -286,7 +286,7 @@ javascript: (function () {
 })();
 
 
-// Служебное.
+// РЎР»СѓР¶РµР±РЅРѕРµ.
 // get full URL
 var qualifyURL = function (url, base) {
     if (!url || /^([a-z]+:|#)/.test(url)) return url;
@@ -337,10 +337,10 @@ var toSrc = function (obj) {
     }
 };
 
-// перебор свойств объекта
+// РїРµСЂРµР±РѕСЂ СЃРІРѕР№СЃС‚РІ РѕР±СЉРµРєС‚Р°
 javascript:alert( (function(obj){var name, ret = ''; for(name in obj){ret += '\n' + name + ' = '; try{ret += obj[name]}catch(e){ret += e}}; return ret})(window) )
 
-// число свойств  window. проверяем его до и после запуска нашего скрипта, чтобы убедиться, что не намусорили в глобальной видимости.
+// С‡РёСЃР»Рѕ СЃРІРѕР№СЃС‚РІ  window. РїСЂРѕРІРµСЂСЏРµРј РµРіРѕ РґРѕ Рё РїРѕСЃР»Рµ Р·Р°РїСѓСЃРєР° РЅР°С€РµРіРѕ СЃРєСЂРёРїС‚Р°, С‡С‚РѕР±С‹ СѓР±РµРґРёС‚СЊСЃСЏ, С‡С‚Рѕ РЅРµ РЅР°РјСѓСЃРѕСЂРёР»Рё РІ РіР»РѕР±Р°Р»СЊРЅРѕР№ РІРёРґРёРјРѕСЃС‚Рё.
 javascript:alert( (function(obj){var name, ret = 0; for(name in obj){ret++}; return ret})(window) )
 </code></pre>
 <script>hljs.initHighlightingOnLoad();</script>
