@@ -1,0 +1,348 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+<title>Snippets for bookmarklets</title>
+<link rel="stylesheet" href="http://yandex.st/highlightjs/7.2/styles/default.min.css">
+<script src="http://yandex.st/highlightjs/7.2/highlight.min.js"></script>
+</head>
+<body>
+<pre><code>
+// Получаем выделенный текст
+var getSel = function (w) {
+    var s, d = w.document;
+	// ie-шная модель удобнее, но поддерживается только в нём и opera &lt; 10.5
+    if (d.selection) {
+        var r = d.selection.createRange();
+        s = r ? r.text : ''
+    } else {
+		// window.getSelection() в опере багнута, теряя переносы строк, поэтому используем document.getSelection()
+		// явное приведение к строке необходимо, потому что в webkit document.getSelection() возвращает объект, такой же как и window.getSelection()
+		s = d.getSelection().toString();
+		if (!s) {
+			// Ищем текст в инпутах и текстареах, отлавливая исключения при обращении к инпутам с недоступным selectionStart (ff и webkit).
+			var e, t = d.getElementsByTagName('textarea'), u = d.getElementsByTagName('input'), i = t.length;
+			while(e = (i &gt; 0) ? t[--i] : u[-i--])try{
+				if (e.offsetHeight &gt; 0 &amp;&amp; (s = e.value.substring(e.selectionStart, e.selectionEnd))) break
+			}catch(x){}
+		}
+	};
+	// рекурсивно вызываем себя во всех фреймах
+    if (!s) for (var j = 0, f; f = w.frames[j]; j++) {
+        try {
+            if (s = getSel(f)) break
+        } catch(x) {}
+    };
+    return s
+};
+// var txt = getSel(window);
+
+
+// Перевод с yandex translate
+javascript:void(document.documentElement.appendChild(document.createElement('script')).src = 'http://translate.yandex.ru/tr.json/translate?srv=tr-text&amp;id=adb7aca1-0-0&amp;text='+document.getSelection()+'&amp;lang=en-ru&amp;callback=alert')
+
+
+// чистка вредных обработчиков
+javascript:(function(w){
+        var arr = ['contextmenu','copy','cut','paste','mousedown','mouseup','beforeunload','beforeprint'];
+        for(var i = 0, x; x = arr[i]; i++){
+            if(w['on' + x])w['on' + x] = null;
+            w.addEventListener(x, function(e){e.stopPropagation()}, true);
+        };
+        for(var j = 0, f; f = w.frames[j]; j++){try{arguments.callee(f)}catch(e){}}
+})(window);
+
+
+// fast Base64
+function encodeBase64(str){
+	var chr1, chr2, chr3, rez = '', arr = [], i = 0, j = 0, code = 0;
+	var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split('');
+
+	while(code = str.charCodeAt(j++)){
+		if(code &lt; 128){
+			arr[arr.length] = code;
+		}
+		else if(code &lt; 2048){
+			arr[arr.length] = 192 | (code &gt;&gt; 6);
+			arr[arr.length] = 128 | (code &amp; 63);
+		}
+		else if(code &lt; 65536){
+			arr[arr.length] = 224 | (code &gt;&gt; 12);
+			arr[arr.length] = 128 | ((code &gt;&gt; 6) &amp; 63);
+			arr[arr.length] = 128 | (code &amp; 63);
+		}
+		else{
+			arr[arr.length] = 240 | (code &gt;&gt; 18);
+			arr[arr.length] = 128 | ((code &gt;&gt; 12) &amp; 63);
+			arr[arr.length] = 128 | ((code &gt;&gt; 6) &amp; 63);
+			arr[arr.length] = 128 | (code &amp; 63);
+		}
+	};
+
+	while(i &lt; arr.length){
+		chr1 = arr[i++];
+		chr2 = arr[i++];
+		chr3 = arr[i++];
+
+		rez += chars[chr1 &gt;&gt; 2];
+		rez += chars[((chr1 &amp; 3) &lt;&lt; 4) | (chr2 &gt;&gt; 4)];
+		rez += chars[chr2 === undefined ? 64 : ((chr2 &amp; 15) &lt;&lt; 2) | (chr3 &gt;&gt; 6)];
+		rez += chars[chr3 === undefined ? 64 : chr3 &amp; 63];
+	};
+	return rez;
+};
+
+
+// Ссылки на видео
+var getVideo = function(flashvars, src){
+	var getLink = function(s){var a = s.match(/[^\s\x22=&amp;?]+\.[^\s\x22=&amp;?\/]*(flv|mp4)/i); return a ? a[0] : ''};
+	var getQuery = function(s, q){var a = s.match(new RegExp('(^|[&amp;?])'+q+'=([^&amp;]+)')); return a ? a[2] : ''};
+	var getJson = function(s, q){var a = s.match(new RegExp('\x22'+q+'\x22:\\s*(\x22.+?\x22)')); return a ? eval(a[1]) : ''};
+	var getURL = function(f, s){return f.match(/^(\w+:\/\/|\/|$)/) ? f : s.replace(/[#?].*$/, '').replace(/[^\/]*$/, f)};
+	var decodeURL = function(s){try{return decodeURIComponent(s)}catch(e){return unescape(s)}};
+
+	var q = '', url = location.href, flv = decodeURL(flashvars);
+
+	if( url.indexOf('youtube.com/watch?') != -1 &amp;&amp; (q = getQuery(flv, 'url')) )return decodeURL(q)+'&amp;signature='+getQuery(flv, 'sig')+'&amp;title='+encodeURIComponent(document.title);
+	if( url.indexOf('video.google.com/videoplay?') != -1 &amp;&amp; (q = getQuery(src, 'videoUrl')) )return decodeURL(q);
+	if( url.indexOf('metacafe.com/watch/') != -1 &amp;&amp; (q = getJson(flv, 'mediaURL')) )return q+'?__gda__='+getJson(flv, 'value');
+	if( url.indexOf('dailymotion.com/') != -1 &amp;&amp; (q = getJson(flv, 'hqURL') || getJson(flv, 'sdURL')) )return q;
+	if( url.indexOf('www.break.com/') != -1 &amp;&amp; (q = getQuery(flv, 'videoPath') ) )return q+'?'+getQuery(flv, 'icon');
+	if( url.indexOf('my-hit.ru/film/') != -1 &amp;&amp; (q = getLink(flv)) )return q+'?start=0&amp;id='+getQuery(flv, 'id');
+
+	return getURL(getLink(flv) || decodeURL(getLink(src)), src);
+};
+
+
+// Панель для закачки
+javascript:(function(){
+
+var c = 'ujs_max_upload', w = window, d = (w.document.body instanceof HTMLFrameSetElement ? w.frames[0] : w).document, e = d.getElementById(c);
+if(e){e.del(); return};
+e = d.createElement('div');
+e.id = c;
+e.setAttribute('style', 'display:none;position:fixed;right:0;bottom:0;width:auto;height:auto;border:1px solid #555;padding:10px;text-align:left;z-index:99999;background-color:#EEE;background:-o-skin(\x22Window Skin\x22);');
+
+e.add = function(lnk, frm){
+	var d = this.ownerDocument, a = d.createElement('a');
+	a.href = lnk.href;
+	a.target = '_blank';
+	a.setAttribute('style', 'padding:0;margin:0;border:none;text-decoration:none;color:#00C;font:14px Times New Roman;');
+	a.appendChild(d.createTextNode(lnk.text));
+	this.appendChild(a);
+
+	var f = d.createElement('form');
+	f.action = lnk.action;
+	f.method = 'post';
+	f.enctype = 'multipart/form-data';
+	f.target = '_blank';
+	f.setAttribute('style', 'display:block;margin:5px;');
+
+	var t = d.createElement('input');
+	t.type = 'file';
+	t.name = lnk.name;
+	t.setAttribute('style', 'width:auto;height:auto;padding:1px;margin:0;border-color:#AAA;font:12px Arial;');
+	t.onchange = function(){this.nextSibling.disabled = !this.value};
+	f.appendChild(t);
+
+	var s = d.createElement('input');
+	s.type = 'submit';
+	s.value = 'Upload';
+	s.disabled = true;
+	s.setAttribute('style', 'width:auto;height:auto;padding:1px 4px;margin:0 0 0 2px;color:buttontext;font:12px Arial;');
+	f.appendChild(s);
+
+	if(frm)for(var name in frm){
+		var h = d.createElement('input');
+		h.type = 'hidden';
+		h.name = name;
+		h.value = frm[name];
+		f.appendChild(h);
+	};
+	this.appendChild(f);
+};
+e.vis = function(v){
+	this.style.display = v ? 'block' : 'none';
+	return this.offsetHeight * this.offsetWidth;
+};
+e.del = function(){
+	this.vis(false);
+	this.parentNode.removeChild(this);
+};
+
+var b = d.createElement('div');
+b.title = 'Close';
+b.setAttribute('style', 'display:block;float:right;height:18px;width:18px;padding:0;margin:-5px;border:none;background-image:url(&quot;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAQAAAD8x0bcAAAAZElEQVR42mNgGNyAGQixsVGU/AdCXjCbHczmxKaMFywlAlWiw6DAwIZNmQhYGqJEDWoqFiAGVmKKTwk73CRJ/Ep0GIyhbsPpO4hbIG4TwKaMk0EZ7hYBBk1cvmNDEmbDrmSwAADE8h10+qICXwAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAAASUVORK5CYII=&quot;);background:-o-skin(\x22Caption Close Button Skin\x22);cursor:pointer');
+b.onclick = function(){this.parentNode.del()};
+e.appendChild(b);
+
+e.add( {href:'http://www.imageshack.us', text:'Imageshack.us', action:'http://post.imageshack.us/', name:'fileupload'}, {MAX_FILE_SIZE:'1048576', key:'07AHPRSUb540e13d31461ec4d69d5fc122bd5ab7'} );
+e.add( {href:'http://www.radikal.cc', text:'Радикал-Фото', action:'http://www.radikal.cc/action.aspx', name:'F'}, {upload:'yes', VM:'180'} );
+e.add( {href:'http://fastpic.ru', text:'FastPic.ru', action:'http://fastpic.ru/uploadmulti', name:'file[]'}, {uploading:'1'} );
+e.add( {href:'http://multi-up.com', text:'Multi-up.com', action:'http://multi-up.com/up.php', name:'upload'} );
+e.add( {href:'http://zalil.ru', text:'Zalil.ru', action:'http://zalil.ru/upload/', name:'file'} );
+e.add( {href:'http://rghost.ru/', text:'Rghost.ru', action:'http://kaon.rghost.ru/files', name:'file'}, {'data-max-file-size':'52428800'} );
+d.documentElement.appendChild(e);
+e.vis(true);
+})();
+
+
+// Сохранение страницы в файл
+javascript: (function () {
+    var getSelWin = function (w) {
+        if (w.getSelection().toString()) return w;
+        for (var i = 0, f, r; f = w.frames[i]; i++) {
+            try {
+                if (r = getSelWin(f)) return r;
+            } catch(e) {}
+        }
+    };
+    var selWin = getSelWin(window);
+    var win = selWin || window, doc = win.document, loc = win.location;
+    var ele, pEle, clone;
+    if (selWin) {
+        var rng = win.getSelection().getRangeAt(0);
+        pEle = rng.commonAncestorContainer;
+        ele = rng.cloneContents();
+    } else {
+        pEle = doc.documentElement;
+        ele = (doc.body || doc.getElementsByTagName('body')[0]).cloneNode(true);
+    };
+    while (pEle) {
+        if (pEle.nodeType == 1) {
+            clone = pEle.cloneNode(false);
+            clone.appendChild(ele);
+            ele = clone;
+        };
+        pEle = pEle.parentNode;
+    };
+
+    var sel = doc.createElement('div');
+    sel.appendChild(ele);
+
+    for (var el, all = sel.getElementsByTagName('*'), i = all.length; i--;) {
+        el = all[i];
+        for (var att = el.attributes, j = att.length; j--;) {
+            if (att[j] &amp;&amp; /^on[a-z]+$/i.test(att[j].name)) el.removeAttribute(att[j].name);
+        };
+        switch (el.nodeName.toLowerCase()) {
+            case 'link':
+            case 'style':
+            case 'script': el.parentNode.removeChild(el); break;
+            case 'a': 
+            case 'area': if (el.hasAttribute('href') &amp;&amp; el.getAttribute('href').charAt(0) != '#') el.href = el.href; break;
+            case 'img':
+            case 'input':
+            case 'audio':
+            case 'video':
+            case 'embed':
+            case 'frame':
+            case 'iframe': if (el.hasAttribute('src')) el.src = el.src; break;
+            case 'object': if (el.hasAttribute('data')) el.data = el.data; break;
+            case 'form': if (el.hasAttribute('action')) el.action = el.action; break;
+        }
+    };
+
+    var head = ele.insertBefore(doc.createElement('head'), ele.firstChild);
+    var meta = doc.createElement('meta');
+    meta.httpEquiv = 'content-type';
+    meta.content = 'text/html; charset=utf-8';
+    head.appendChild(meta);
+    var title = doc.getElementsByTagName('title')[0];
+    if (title) head.appendChild(title.cloneNode(true));
+
+    head.copyStyle = function (s) {
+        if (!s) return;
+        var style = doc.createElement('style');
+        style.type = 'text/css';
+        if (s.media &amp;&amp; s.media.mediaText) style.media = s.media.mediaText;
+        try {
+            for (var i = 0, rule; rule = s.cssRules[i]; i++) {
+                if (rule.type != 3) {
+                    if((!rule.selectorText || rule.selectorText.indexOf(':') != -1) || (!sel.querySelector || sel.querySelector(rule.selectorText))) {
+                        style.appendChild(doc.createTextNode(rule.cssText + '\n'));
+                    }
+                } else {
+                    this.copyStyle(rule.styleSheet);
+                }
+            }
+        } catch(e) {
+            if (s.ownerNode) style = s.ownerNode.cloneNode(false);
+        };
+        this.appendChild(style);
+    };
+    var sheets = doc.styleSheets;
+    for (var j = 0; j &lt; sheets.length; j++) head.copyStyle(sheets[j]);
+    head.appendChild(doc.createTextNode('\n'));
+
+    var doctype = '', dt = doc.doctype;
+    if (dt &amp;&amp; dt.name) {
+        doctype += '&lt;!DOCTYPE ' + dt.name;
+        if (dt.publicId) doctype += ' PUBLIC \x22' + dt.publicId + '\x22';
+        if (dt.systemId) doctype += ' \x22' + dt.systemId + '\x22';
+        doctype += '&gt;\n';
+    };
+    loc.href = 'data:text/phf;charset=utf-8,' + encodeURIComponent(doctype + sel.innerHTML + '\n&lt;!-- This document saved from ' + (loc.protocol != 'data:' ? loc.href : 'data:uri') + ' --&gt;')
+})();
+
+
+// Служебное.
+// get full URL
+var qualifyURL = function (url, base) {
+    if (!url || /^([a-z]+:|#)/.test(url)) return url;
+    var a = document.createElement('a');
+    if (base) {
+        a.href = base;
+        a.href = a.protocol + (url.charAt(0) == '/' ? (url.charAt(1) == '/' ? '' : '//' + a.host) : '//' + a.host + a.pathname.slice(0, (url.charAt(0) != '?' &amp;&amp; a.pathname.lastIndexOf('/') + 1) || a.pathname.length)) + url;
+    } else {
+        a.href = url;
+    };
+    return a.href;
+};
+
+// uneval/toSource
+var toSrc = function (obj) {
+    var strToSrc = function (str) {
+        var chr, ret = '', i = 0, meta = {'\b': '\\b', '\t': '\\t', '\n': '\\n', '\f': '\\f', '\r': '\\r', '&quot;' : '\\&quot;', '\\': '\\\\'};
+        while (chr = str.charAt(i++)) {
+            ret += meta[chr] || chr;
+        };
+        return '&quot;' + ret + '&quot;';
+    },
+    arrToSrc = function (arr) {
+        var ret = [];
+        for (var i = 0; i &lt; arr.length; i++) {
+            ret[i] = toSrc(arr[i]) || 'null';
+        };
+        return '[' + ret.join(',') + ']';
+    },
+    objToSrc = function (obj) {
+        var val, ret = [];
+        for (var prop in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, prop) &amp;&amp; (val = toSrc(obj[prop]))) ret.push(strToSrc(prop) + ': ' + val);
+        };
+        return '{' + ret.join(',') + '}';
+    };
+    switch (Object.prototype.toString.call(obj).slice(8, -1)) {
+        case 'Array': return arrToSrc(obj);
+        case 'Boolean':
+        case 'Function':
+        case 'RegExp': return obj.toString();
+        case 'Date': return 'new Date(' + obj.getTime() + ')';
+        case 'Math': return 'Math';
+        case 'Number': return isFinite(obj) ? String(obj) : 'null';
+        case 'Object': return objToSrc(obj);
+        case 'String': return strToSrc(obj);
+        default: return obj ? '{}' : 'null';
+    }
+};
+
+// перебор свойств объекта
+javascript:alert( (function(obj){var name, ret = ''; for(name in obj){ret += '\n' + name + ' = '; try{ret += obj[name]}catch(e){ret += e}}; return ret})(window) )
+
+// число свойств  window. проверяем его до и после запуска нашего скрипта, чтобы убедиться, что не намусорили в глобальной видимости.
+javascript:alert( (function(obj){var name, ret = 0; for(name in obj){ret++}; return ret})(window) )
+</code></pre>
+<script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>
